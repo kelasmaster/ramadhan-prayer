@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sholat Prayer Times - Ramadan</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div class="container">
+    <h1>Sholat Prayer Times - Ramadan</h1>
+    <label for="year">Select Year:</label>
+    <input type="number" id="year" min="2023" value="2023" />
+    <button id="generateBtn">Generate Prayer Times</button>
+
+    <table id="prayerTable">
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Fajr</th>
+          <th>Dhuhr</th>
+          <th>Asr</th>
+          <th>Maghrib</th>
+          <th>Isha</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Prayer times will be dynamically inserted here -->
+      </tbody>
+    </table>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
