@@ -1,28 +1,55 @@
 // script.js
 
-// Placeholder prayer times for demonstration
-const prayerTimesData = {
-  2023: [
-    { day: 1, fajr: "04:30", dhuhr: "12:15", asr: "15:45", maghrib: "18:30", isha: "19:45" },
-    { day: 2, fajr: "04:31", dhuhr: "12:15", asr: "15:46", maghrib: "18:31", isha: "19:46" },
-    { day: 3, fajr: "04:32", dhuhr: "12:15", asr: "15:47", maghrib: "18:32", isha: "19:47" },
-    { day: 4, fajr: "04:33", dhuhr: "12:15", asr: "15:48", maghrib: "18:33", isha: "19:48" },
-    { day: 5, fajr: "04:34", dhuhr: "12:15", asr: "15:49", maghrib: "18:34", isha: "19:49" },
-    // Add more days up to 30...
-    { day: 30, fajr: "04:50", dhuhr: "12:15", asr: "15:55", maghrib: "18:50", isha: "20:05" }
-  ]
-};
-
-document.getElementById("generateBtn").addEventListener("click", () => {
-  const year = document.getElementById("year").value;
+document.getElementById("generateBtn").addEventListener("click", async () => {
+  const city = document.getElementById("city").value.trim();
+  const year = document.getElementById("year").value.trim();
   const tableBody = document.querySelector("#prayerTable tbody");
 
   // Clear existing rows
   tableBody.innerHTML = "";
 
-  // Check if data exists for the selected year
-  if (prayerTimesData[year]) {
-    prayerTimesData[year].forEach(dayData => {
+  if (!city || !year) {
+    alert("Please enter both a city and a year.");
+    return;
+  }
+
+  try {
+    // Fetch latitude and longitude for the given city using Geocoding API
+    const geocodeResponse = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=YOUR_OPENCAGE_API_KEY`);
+    const geocodeData = await geocodeResponse.json();
+
+    if (geocodeData.results.length === 0) {
+      alert("City not found. Please enter a valid city name.");
+      return;
+    }
+
+    const { lat, lng } = geocodeData.results[0].geometry;
+
+    // Fetch prayer times for the entire month of Ramadan
+    const ramadanStart = getRamadanStartDate(year); // Helper function to calculate Ramadan start date
+    const prayerTimes = [];
+
+    for (let day = 1; day <= 30; day++) {
+      const date = new Date(ramadanStart);
+      date.setDate(date.getDate() + (day - 1));
+
+      const formattedDate = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+      const prayerResponse = await fetch(`https://api.aladhan.com/v1/timings/${formattedDate}?latitude=${lat}&longitude=${lng}&method=5`);
+      const prayerData = await prayerResponse.json();
+
+      const timings = prayerData.data.timings;
+      prayerTimes.push({
+        day: day,
+        fajr: timings.Fajr,
+        dhuhr: timings.Dhuhr,
+        asr: timings.Asr,
+        maghrib: timings.Maghrib,
+        isha: timings.Isha
+      });
+    }
+
+    // Populate the table with prayer times
+    prayerTimes.forEach(dayData => {
       const row = document.createElement("tr");
       row.innerHTML = `
         <td>${dayData.day}</td>
@@ -32,9 +59,27 @@ document.getElementById("generateBtn").addEventListener("click", () => {
         <td>${dayData.maghrib}</td>
         <td>${dayData.isha}</td>
       `;
-      tableBody.appendChild(row); // Append the row to the table body
+      tableBody.appendChild(row);
     });
-  } else {
-    alert(`Prayer times for the year ${year} are not available.`);
+
+  } catch (error) {
+    console.error(error);
+    alert("An error occurred while fetching prayer times. Please try again.");
   }
 });
+
+// Helper function to calculate the start date of Ramadan
+function getRamadanStartDate(year) {
+  // This is a simplified calculation. For precise dates, use a Hijri calendar API.
+  const ramadanStartDates = {
+    2023: "2023-03-23",
+    2024: "2024-03-11",
+    2025: "2025-03-01"
+  };
+
+  if (!ramadanStartDates[year]) {
+    throw new Error("Ramadan start date not available for the selected year.");
+  }
+
+  return new Date(ramadanStartDates[year]);
+}
