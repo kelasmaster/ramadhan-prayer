@@ -15,7 +15,7 @@ document.getElementById("generateBtn").addEventListener("click", async () => {
 
   try {
     // Fetch latitude and longitude for the given city using Geocoding API
-    const geocodeResponse = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=YOUR_OPENCAGE_API_KEY`);
+    const geocodeResponse = await fetch(`https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=0f0ac770b691491a9d32555d5840299e`);
     const geocodeData = await geocodeResponse.json();
 
     if (geocodeData.results.length === 0) {
